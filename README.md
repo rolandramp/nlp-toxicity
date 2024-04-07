@@ -49,7 +49,7 @@ Here the directory structure of the project is shown and described:
  ┃ ┣ 📜ner_train.py
  ┃ ┣ 📜predict.py
  ┃ ┗ 📜train.py
- ┣ 📂tuwnlpie
+ ┣ 📂nlptoxicity
  ┃ ┣ 📂finalproject
  ┃ ┃ ┣ 📜projectdatasetcreator.py
  ┃ ┃ ┣ 📜projectdatasets.py
@@ -100,3 +100,5 @@ This work is licensed under the MIT License. See LICENSE file.
 https://orcid.org/0009-0003-5145-2197
 
 email: e0055097@student.tuwien.ac.at
+
+[![DOI](https://zenodo.org/badge/783249120.svg)](https://zenodo.org/doi/10.5281/zenodo.10938085)
