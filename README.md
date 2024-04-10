@@ -48,19 +48,13 @@ Here the directory structure of the project is shown and described:
  ┃ ┣ 📜evaluate.py
  ┃ ┣ 📜ner_train.py
  ┃ ┣ 📜predict.py
+ ┃ ┣ 📜prepare.py
  ┃ ┗ 📜train.py
  ┣ 📂nlptoxicity
- ┃ ┣ 📂finalproject
- ┃ ┃ ┣ 📜projectdatasetcreator.py
- ┃ ┃ ┣ 📜projectdatasets.py
- ┃ ┃ ┣ 📜trainer.py
- ┃ ┃ ┣ 📜utils.py
- ┃ ┣ 📂milestone1
- ┃ ┃ ┣ 📜model.py
- ┃ ┃ ┗ 📜utils.py
- ┃ ┣ 📂milestone2
- ┃ ┃ ┣ 📜model.py
- ┃ ┃ ┗ 📜utils.py
+ ┃ ┣ 📜projectdatasetcreator.py
+ ┃ ┣ 📜projectdatasets.py
+ ┃ ┣ 📜trainer.py
+ ┃ ┣ 📜utils.py
  ┃ ┗ 📜__init__.py
  ┣ 📜.gitignore
  ┣ 📜LICENSE
