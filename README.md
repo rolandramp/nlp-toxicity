@@ -39,9 +39,8 @@ Here the directory structure of the project is shown and described:
  ┣ 📂data
  ┃ ┣ 📜README.md
  ┣ 📂docs
- ┃ ┗ README.md
- ┣ 📂model
- ┃ ┗ README.md
+ ┃ ┣ 📜datapreparation.md
+ ┃ ┗ 📜experiments.md
  ┣ 📂runs
  ┃ ┗ README.md
  ┣ 📂scripts
@@ -59,19 +58,14 @@ Here the directory structure of the project is shown and described:
  ┣ 📜.gitignore
  ┣ 📜LICENSE
  ┣ 📜README.md
- ┣ 📜setup.py
+ ┗ 📜setup.py
 ```
 
 - `data`: This folder contains the data that you will use for training and testing your models. You can also store your trained models in this folder. The best practice is to store the data elsewhere (e.g. on a cloud storage) and provivde download links. If your data is small enough you can also store it in the repository.
 - `docs`: This folder contains the reports of your project. You will be asked to write your reports here in Jupyter Notebooks or in simple Markdown files.
-- `model`: This folder contains the trained models.
-- `runs`: This folder is used for storing training runs.
+- `runs`: This folder is used for storing training runs and models.
 - `scripts`: This folder contains the scripts that you will use to train, evaluate and test your models. You can also use these scripts to evaluate your models.
-- `tuwnlpie`: This folder contains the code of your project. This is a python package that is installed in the conda environment that you created. You can use this package to import your code in your scripts and in your notebooks. The `setup.py` file contains all the information about the installation of this repositorz. The structure of this folder is the following:
-  - `milestone1`: This folder contains the code for the first milestone. 
-  - `milestone2`: This folder contains the code for the second milestone.
-  - `finalproject`: This folder contains the code for the final project.
-  - `__init__.py`: This file is used to initialize the `tuwnlpie` package. You can use this file to import your code in your scripts and in your notebooks.
+- `nlptoxicity`: This folder contains the code of your project. This is a python package that is installed in the conda environment that you created. You can use this package to import your code in your scripts and in your notebooks. The `setup.py` file contains all the information about the installation of this repository. - `__init__.py`: This file is used to initialize the `tuwnlpie` package. You can use this file to import your code in your scripts and in your notebooks.
 - `setup.py`: This file contains all the information about the installation of this repository. You can use this file to install this repository as a package in your conda environment.
 - `LICENSE`: This file contains the license of this repository.
 - `team.cfg`: This file contains the information about your team.
@@ -81,6 +75,7 @@ Here the directory structure of the project is shown and described:
 First download all the resources that you need for the project. You can find all the information in the `data/README.md` file.
 
 In the `scripts` folder you can find the scripts that you can use to train, evaluate and test your models. 
+Further description is located in `docs/experiments.md` and `docs/datapreparation.md`
 
 
 ## License
@@ -91,7 +86,7 @@ This work is licensed under the MIT License. See LICENSE file.
 
 ## Contact
 
-https://orcid.org/0009-0003-5145-2197
+![ORCID](https://info.orcid.org/wp-content/uploads/2020/12/orcid_16x16.gif)https://orcid.org/0009-0003-5145-2197
 
 email: e0055097@student.tuwien.ac.at
 

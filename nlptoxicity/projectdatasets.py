@@ -24,44 +24,54 @@ class NeuroToxicBertDataset(Dataset):
 
 
 class NeuroToxicBertNerDataset(Dataset):
-
-    def __init__(self, raw_data, tokenizer: PreTrainedTokenizer):
-        self.tokenizer = tokenizer
-        self.raw_data = raw_data
-        self.data = self.do_alignment(raw_data=self.raw_data)
+    def __init__(self, data, tokenizer, labels_to_ids):
+        self.labels_to_ids = labels_to_ids
+        # lb = [i.split() for i in data['ner_label'].values.tolist()]
+        lb = data['ner_label'].values
+        txt = data['Comment'].values.tolist()
+        self.texts = [tokenizer(str(i),
+                                padding='max_length', max_length=100, truncation=True, return_tensors="pt") for i in
+                      txt]
+        self.labels = [self.align_label(i, j, tokenizer, self.labels_to_ids) for i, j in zip(txt, lb)]
 
     def __len__(self):
-        return len(self.data)
+        return len(self.labels)
+
+    def get_batch_data(self, idx):
+        return self.texts[idx]
+
+    def get_batch_labels(self, idx):
+        return torch.LongTensor(self.labels[idx])
 
     def __getitem__(self, idx):
-        data = self.data[idx]
-        return {'input_ids': data['input_ids'],
-                'token_type_ids': data['token_type_ids'],
-                'attention_mask': data['attention_mask'],
-                'labels': data['labels']}
+        batch_data = self.get_batch_data(idx)
+        batch_labels = self.get_batch_labels(idx)
 
-    def __align_labels_with_tokens(self, labels, word_ids):
-        new_labels = labels
-        new_labels.append(0)
-        new_labels.insert(0, 0)
-        # pad to needed length
-        new_labels = new_labels + [0 for _ in range(len(word_ids) - len(new_labels))]
-        return new_labels
+        return batch_data, batch_labels
 
-    def __tokenize_and_align_labels(self, examples):
-        tokenized_inputs = self.tokenizer(examples["Comment"], truncation=True, padding=True)
-        all_labels = examples["ner_tags"]
-        new_labels = []
-        for i, labels in enumerate(all_labels):
-            word_ids = tokenized_inputs.word_ids(i)
-            new_labels.append(self.__align_labels_with_tokens(labels, word_ids))
-        tokenized_inputs["labels"] = new_labels
-        return tokenized_inputs
+    def align_label(self, texts, labels, tokenizer, labels_to_ids):
+        tokenized_inputs = tokenizer(texts, padding='max_length', max_length=100, truncation=True)
 
-    def do_alignment(self, raw_data):
-        tokenized_datasets = raw_data.map(
-            self.__tokenize_and_align_labels,
-            batched=True,
-            remove_columns=raw_data.column_names,
-        )
-        return tokenized_datasets
+        word_ids = tokenized_inputs.word_ids()
+
+        previous_word_idx = None
+        label_ids = []
+
+        for word_idx in word_ids:
+
+            if word_idx is None:
+                label_ids.append(-100)
+
+            elif word_idx != previous_word_idx:
+                try:
+                    label_ids.append(labels_to_ids[labels[word_idx]])
+                except:
+                    label_ids.append(-100)
+            else:
+                try:
+                    label_ids.append(labels_to_ids[labels[word_idx]] if True else -100)
+                except:
+                    label_ids.append(-100)
+            previous_word_idx = word_idx
+
+        return label_ids

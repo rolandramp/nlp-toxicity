@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from nlptoxicity import logger
-from nlptoxicity.projectdatasets import NeuroToxicBertDataset
+from nlptoxicity.projectdatasets import NeuroToxicBertDataset, NeuroToxicBertNerDataset
 from nlptoxicity.trainer import GBertTrainer, GBertNerTrainer2
 from nlptoxicity.utils import load_and_split_data_set, get_bert_sequence_classification_model, \
     get_transformer_model_tokenizer, load_conllu_data_set, clean_and_augment_data, \
@@ -58,6 +58,40 @@ def train_bert_neuro_toxic_network(data_path, splits_path=None, save=False, outp
         gtrainer.save_model()
     logger.info("Evaluating...")
     gtrainer.do_evaluation(dataset_test)
+
+
+def train_gbert_ner_neuro_toxic_network(data_path: str, save: bool = False, output_path: str = None,
+                                        num_epochs: int = 15, freeze_first_n_layers: int = None):
+    label_ids = list(['O', 'Vul'])
+    label2id = {label: id for id, label in enumerate(label_ids)}
+    id2label = {id: label for label, id in label2id.items()}
+    logger.info("Load GBERT NER model...")
+    model = get_deepset_gbert_base_mode_ner2(freeze_first_n_layers=freeze_first_n_layers)
+    tokenizer = get_transformer_model_tokenizer()
+    logger.info("Loading data...")
+    data_vulgarity_df = prepare_ner_data_conllu(load_vulgarities_entries(data_path))
+    df_train, df_val, df_test = np.split(data_vulgarity_df.sample(frac=1, random_state=42),
+                                         [int(.8 * len(data_vulgarity_df)), int(.9 * len(data_vulgarity_df))])
+
+    dataset_train = NeuroToxicBertNerDataset(df_train, tokenizer=tokenizer,labels_to_ids=label2id)
+    dataset_val = NeuroToxicBertNerDataset(df_val, tokenizer=tokenizer,labels_to_ids=label2id)
+    dataset_test = NeuroToxicBertNerDataset(df_test, tokenizer=tokenizer,labels_to_ids=label2id)
+
+    logger.info("Training...")
+    g_bert_ner_trainer = GBertNerTrainer2(model=model,
+                                          tokenizer=tokenizer,
+                                          num_epochs=num_epochs,
+                                          output_path=output_path,
+                                          labels_to_ids=label2id,
+                                          train_data=df_train,
+                                          val_data=df_val,
+                                          test_data=df_test)
+    g_bert_ner_trainer.do_training()
+
+    if save:
+        g_bert_ner_trainer.save_model()
+    logger.info("Evaluating...")
+    g_bert_ner_trainer.do_evaluation()
 
 
 def train_gbert_ner_neuro_toxic_network_new_try(data_path: str, save: bool = False, output_path: str = None,

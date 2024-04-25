@@ -101,6 +101,94 @@ class GBertTrainer:
         self.trainer.save_model(os.path.join(self.output_path, "model"))
 
 
+class GBertNerTrainer:
+
+    def __init__(self, model, tokenizer, train_dataset, val_dataset, test_dataset, num_epochs=2,
+                 output_path="runs/default"):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model = model.to(device)
+        self.tokenizer = tokenizer
+        self.train_dataset = train_dataset
+        self.val_dataset = val_dataset
+        self.test_dataset = test_dataset
+        self.num_epochs = num_epochs
+        self.output_path = output_path
+        self.trainer = self.create_trainer()
+
+    def create_trainer(self) -> Trainer:
+        training_args = TrainingArguments(
+            output_dir=os.path.join(self.output_path, "model"),
+            logging_dir=os.path.join(self.output_path, "logs"),
+            evaluation_strategy="epoch",
+            save_strategy="epoch",
+            logging_strategy="epoch",
+            learning_rate=float(5e-5),
+            num_train_epochs=self.num_epochs,
+            per_device_train_batch_size=8,
+            per_device_eval_batch_size=8,
+            warmup_steps=200,
+            load_best_model_at_end=True
+        )
+        return Trainer(
+            model=self.model,
+            args=training_args,
+            compute_metrics=self.compute_metrics_bin,
+            train_dataset=self.train_dataset,
+            eval_dataset=self.val_dataset,
+            tokenizer=self.tokenizer,
+            callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
+        )
+
+    @staticmethod
+    def compute_metrics(eval_preds):
+        logits, labels = eval_preds
+        preds = np.argmax(logits, axis=-1)
+        return {
+            "acc": accuracy_score(labels, preds),
+            "f1": f1_score(labels, preds, average='macro'),
+            "precision": precision_score(labels, preds, average='macro'),
+            "recall": recall_score(labels, preds, average='macro'),
+        }
+
+    @staticmethod
+    def compute_metrics_bin(pred):
+        labels = pred.label_ids
+        preds = pred.predictions.argmax(-1)
+        precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
+        acc = accuracy_score(labels, preds)
+        return {"accuracy": acc,
+                "f1": f1,
+                "precision": precision,
+                "recall": recall
+                }
+
+    def do_training(self):
+        train_result = self.trainer.train()
+        # self.trainer.log_metrics(self, "train", metrics=train_result.metrics)
+        # self.trainer.save_metrics(self, "train", metrics=train_result.metrics)
+
+    def do_evaluation(self, val_dataset):
+        eval_result = self.trainer.evaluate(eval_dataset=val_dataset)
+        # self.trainer.log_metrics(self,"test", metrics=eval_result)
+        # self.trainer.save_metrics(self,"test", metrics=eval_result)
+        if not os.path.exists(os.path.join(self.output_path, "logs")):
+            os.mkdir(os.path.join(self.output_path, "logs"))
+        with open(os.path.join(self.output_path, "logs", "eval_results.txt"), "w") as writer:
+            logger.info("Writing evaluation to file ")
+            for key, value in sorted(eval_result.items()):
+                writer.write(f"{key} = {value}\n")
+
+    def do_predictions(self, df_test: pd.DataFrame) -> pd.DataFrame:
+        pred, _, _ = self.trainer.predict(test_dataset=self.test_dataset)
+        predictions = np.argmax(pred, axis=1)
+        return_df = df_test.copy()
+        return_df['prediction'] = predictions
+        return return_df
+
+    def save_model(self):
+        self.trainer.save_model(os.path.join(self.output_path, "model"))
+
+
 class DataSequence(torch.utils.data.Dataset):
     def __init__(self, data, tokenizer, labels_to_ids):
         self.labels_to_ids = labels_to_ids

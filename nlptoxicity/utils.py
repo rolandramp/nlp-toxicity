@@ -218,7 +218,7 @@ def prepare_ner_data(all_data_vulgarity: pd.DataFrame, tokenizer: PreTrainedToke
     return raw_data
 
 
-def prepare_ner_data_conllu(vulgarity_df: pd.DataFrame):
+def prepare_ner_data_conllu(vulgarity_df: pd.DataFrame, concatenate_comment:bool = True):
     data_vulgarity = vulgarity_df.loc[:, ['Comment', 'Vulgarity']]
     comment_words_list = extract_text(vulgarity_df['Comment'])
     vulgarity_word_list = extract_vul(vulgarity_df['Vulgarity'])
@@ -239,7 +239,8 @@ def prepare_ner_data_conllu(vulgarity_df: pd.DataFrame):
     vulgarity1_df2 = pd.DataFrame(list(zip(comment_list, ner_labels_list, vulgarity_list)),
                                   columns=['Comment', 'ner_label', 'Vulgarity'])
     vulgarity1_df2 = vulgarity1_df2.loc[:, ['Comment', 'ner_label']]
-    vulgarity1_df2['Comment'] = vulgarity1_df2['Comment'].str.join(' ')
+    if (concatenate_comment):
+        vulgarity1_df2['Comment'] = vulgarity1_df2['Comment'].str.join(' ')
     vulgarity1_df2['ner_label'] = vulgarity1_df2['ner_label'].str.join(' ')
     # only keep examples with vulgarities
     vulgarity1_df2 = vulgarity1_df2[vulgarity1_df2["ner_label"].str.contains("Vul")]
